@@ -151,6 +151,9 @@ module.exports.init = (aApp, aPredefinedSpec, options) => {
         processors.processResponse(res, methodAndPathKey.method);
       }
     } finally {
+		if (save && path) {
+			utils.save(path, patchSpec(predefinedSpec))
+		}
       return next();
     }
   });

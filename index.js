@@ -103,7 +103,7 @@ function getPathKey(req) {
 }
 
 function getMethod(req) {
-  if (req.url.startsWith('/api/spec') || req.url.startsWith('/api/docs')) {
+  if (req.url === '/api/spec' || req.url === '/api/docs') {
     return undefined;
   }
 

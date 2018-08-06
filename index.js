@@ -134,14 +134,14 @@ module.exports.init = (aApp, aPredefinedSpec, options) => {
   app = aApp;
   predefinedSpec = aPredefinedSpec;
   if (!options.save) {
-	  save = false;
+    save = false;
   } else {
-	  save = true;
+    save = true;
   }
   if (!options.path) {
-	  save = false;
+    save = false;
   } else {
-	  path = options.path;
+    path = options.path;
   }
   // middleware to handle responses
   app.use((req, res, next) => {
@@ -151,9 +151,9 @@ module.exports.init = (aApp, aPredefinedSpec, options) => {
         processors.processResponse(res, methodAndPathKey.method);
       }
     } finally {
-		if (save && path) {
-			utils.save(path, patchSpec(predefinedSpec))
-		}
+      if (save && path) {
+        utils.save(path, patchSpec(predefinedSpec))
+      }
       return next();
     }
   });
@@ -173,9 +173,9 @@ module.exports.init = (aApp, aPredefinedSpec, options) => {
           processors.processQuery(req, method);
         }
       } finally {
-		if (save && path) {
-			utils.save(path, patchSpec(predefinedSpec))
-		}
+        if (save && path) {
+          utils.save(path, patchSpec(predefinedSpec))
+        }
         return next();
       }
     });

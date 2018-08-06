@@ -171,7 +171,7 @@ module.exports.init = (aApp, aPredefinedSpec, options) => {
         }
       } finally {
 		if (save && path) {
-			utils.save(path, spec)
+			utils.save(path, patchSpec(predefinedSpec))
 		}
         return next();
       }

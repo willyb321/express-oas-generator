@@ -7,7 +7,8 @@ const listEndpoints = require('express-list-endpoints');
 
 const packageJsonPath = `${process.cwd()}/package.json`;
 const packageInfo = fs.existsSync(packageJsonPath) ? require(packageJsonPath) : {};
-
+let path = '';
+let save = false;
 let app;
 let predefinedSpec;
 let spec = {};
@@ -16,16 +17,16 @@ function updateSpecFromPackage() {
   spec.info = spec.info || {};
 
   if (packageInfo.name) {
-    spec.info.title = packageInfo.name; 
+    spec.info.title = packageInfo.name;
   }
   if (packageInfo.version) {
-    spec.info.version = packageInfo.version; 
+    spec.info.version = packageInfo.version;
   }
   if (packageInfo.license) {
-    spec.info.license = { name: packageInfo.license }; 
+    spec.info.license = { name: packageInfo.license };
   }
 
-  spec.info.description = '[Specification JSON](/api-spec)';
+  spec.info.description = '[Specification JSON](/api/spec)';
   if (packageInfo.description) {
     spec.info.description += `\n\n${packageInfo.description}`;
   }
@@ -65,12 +66,12 @@ function init() {
 
   updateSpecFromPackage();
   spec = patchSpec(predefinedSpec);
-  app.use('/api-spec', (req, res, next) => {
+  app.use('/api/spec', (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify(patchSpec(predefinedSpec), null, 2));
     return next();
   });
-  app.use('/api-docs', swaggerUi.serve, (req, res) => {
+  app.use('/api/docs', swaggerUi.serve, (req, res) => {
     swaggerUi.setup(patchSpec(predefinedSpec))(req, res);
   });
 }
@@ -102,18 +103,18 @@ function getPathKey(req) {
 }
 
 function getMethod(req) {
-  if (req.url.startsWith('/api-')) {
-    return undefined; 
+  if (req.url.startsWith('/api/spec') || req.url.startsWith('/api/docs')) {
+    return undefined;
   }
 
   const m = req.method.toLowerCase();
   if (m === 'options') {
-    return undefined; 
+    return undefined;
   }
 
   const pathKey = getPathKey(req);
   if (!pathKey) {
-    return undefined; 
+    return undefined;
   }
 
   return { method: spec.paths[pathKey][m], pathKey };
@@ -129,16 +130,25 @@ function updateSchemesAndHost(req) {
   }
 }
 
-module.exports.init = (aApp, aPredefinedSpec) => {
+module.exports.init = (aApp, aPredefinedSpec, options) => {
   app = aApp;
   predefinedSpec = aPredefinedSpec;
-
+  if (!options.save) {
+	  save = false;
+  } else {
+	  save = true;
+  }
+  if (!options.path) {
+	  save = false;
+  } else {
+	  path = options.path;
+  }
   // middleware to handle responses
   app.use((req, res, next) => {
     try {
       const methodAndPathKey = getMethod(req);
       if (methodAndPathKey && methodAndPathKey.method) {
-        processors.processResponse(res, methodAndPathKey.method); 
+        processors.processResponse(res, methodAndPathKey.method);
       }
     } finally {
       return next();
@@ -160,6 +170,9 @@ module.exports.init = (aApp, aPredefinedSpec) => {
           processors.processQuery(req, method);
         }
       } finally {
+		if (save && path) {
+			utils.save(path, spec)
+		}
         return next();
       }
     });
